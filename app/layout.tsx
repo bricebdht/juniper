@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import "./globals.css";
+
 export const metadata: Metadata = {
   title: "Juniper",
   description: "A city-by-city social guide for digital nomads.",
@@ -12,9 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, fontFamily: "system-ui, -apple-system, sans-serif" }}>
-        {children}
-      </body>
+      <body className="min-h-dvh bg-white text-slate-900 antialiased">{children}</body>
     </html>
   );
 }
