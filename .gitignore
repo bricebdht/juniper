@@ -1,0 +1,13 @@
+.DS_Store
+*.log
+*.tsbuildinfo
+
+node_modules
+.next
+out
+dist
+
+.env
+.env.*.local
+.npm-cache
+
