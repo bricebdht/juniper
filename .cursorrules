@@ -1,0 +1,77 @@
+## MYRIEL MCP Workflow
+
+**IMPORTANT**: When working on this project, the AI assistant MUST use the MYRIEL MCP tools proactively:
+
+### ⚠️ CRITICAL: Task Completion Workflow
+
+**IMMEDIATELY after completing implementation work (build passes):**
+
+1. **Run `/review`** - This skill automates the review workflow:
+   - Finds the current IN_PROGRESS task
+   - Updates status to `PENDING_REVIEW`
+   - Adds a completion comment
+   - Reminds you NOT to commit yet
+
+2. **DO NOT COMMIT** - Wait for user approval in the MYRIEL UI
+3. **After user clicks "Approve"** → Run `/approve` to complete and commit
+
+If `/review` is not available, manually:
+```
+mcp_myriel_update_task(taskId, status: "PENDING_REVIEW")
+mcp_myriel_create_comment(taskId, "## Summary\n[What was done]")
+```
+
+### On Every Session Start
+1. **Check existing tasks**: Use `mcp_myriel_list_tasks` with `status: "IN_PROGRESS"` to see current work
+2. **Present the full backlog**: Fetch ALL TODO tasks by priority (URGENT, HIGH, MEDIUM, LOW) and present them in a formatted table so the user can make an informed choice about what to work on
+3. **Wait for user choice**: Don't assume what the user wants to work on - let them pick from the backlog
+
+### During Development
+1. **Before starting work**:
+   - Check if a task exists for the requested feature/fix
+   - If not, create one with `mcp_myriel_create_task`
+   - Update task status to `IN_PROGRESS` when starting
+
+2. **While working**:
+   - Add comments to tasks when discovering important information, blockers, or decisions
+   - Use task descriptions to document approach taken
+
+3. **After completing work**:
+   - Update task status to `PENDING_REVIEW` (NOT `COMPLETED`)
+   - **Do NOT commit yet** - wait for user approval
+   - Add a comment summarizing what was done
+
+4. **Review workflow**:
+   - When a task is in `PENDING_REVIEW`, the user sees "Approve" and "Request Changes" buttons
+   - If user clicks **Approve**: Update status to `COMPLETED` and commit the changes
+   - If user clicks **Request Changes**: Status returns to `IN_PROGRESS`, continue working based on feedback
+
+### Task Management Best Practices
+- **Priority mapping**: URGENT for critical bugs, HIGH for important features, MEDIUM for standard work, LOW for nice-to-haves
+- **Use projects**: Link tasks to the appropriate project (use `gitRepoUrl` parameter for auto-linking)
+- **Descriptive titles**: Use action verbs (e.g., "Fix login redirect loop", "Add dark mode toggle")
+- **Comments**: Add comments for blockers, decisions, progress updates, and completion notes
+
+### Example Workflow
+```
+User: "Fix the bug where tasks don't save"
+
+AI assistant should:
+1. mcp_myriel_list_tasks(status: "IN_PROGRESS") → Check current work
+2. mcp_myriel_list_tasks(search: "save") → Look for existing related task
+3. mcp_myriel_create_task(title: "Fix task save bug", priority: "HIGH") → If none exists
+4. mcp_myriel_update_task(taskId, status: "IN_PROGRESS") → Mark as started
+5. [Do the actual fix]
+6. mcp_myriel_update_task(taskId, status: "PENDING_REVIEW") → Mark for review (DO NOT COMMIT YET)
+7. [Wait for user to click "Approve" or "Request Changes" in the UI]
+8. If approved → mcp_myriel_update_task(taskId, status: "COMPLETED") + commit
+```
+
+### Task Status Flow
+```
+TODO → IN_PROGRESS → PENDING_REVIEW → COMPLETED
+                           ↓
+                    (Request Changes)
+                           ↓
+                     IN_PROGRESS
+```
